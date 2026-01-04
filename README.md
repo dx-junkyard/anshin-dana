@@ -21,6 +21,27 @@ The reverse proxy exposes:
 - Next.js web at `http://localhost:8080`
 - API proxied at `http://localhost:8080/api`
 
+### Authentication flow
+
+- `POST /api/auth/line` accepts a LINE ID token from LIFF and returns a server-issued JWT. Body example:
+
+```json
+{
+  "idToken": "LINE_ID_TOKEN",
+  "displayName": "optional display name",
+  "pictureUrl": "https://example.com/avatar.png"
+}
+```
+
+- All other `/api/**` endpoints require `Authorization: Bearer <server JWT>`. An invalid or missing token returns `401`.
+- Example check without a real LINE token (expecting `401` due to invalid token):
+
+```bash
+curl -i -H "Authorization: Bearer invalid" http://localhost:8080/api/plan/emergency
+```
+
+LINE ID token signature verification is enforced on the backend; no mock or bypass mode is provided.
+
 ### Project goals
 
 - Frictionless registration and daily-use flows (scan → suggest → minimal input).

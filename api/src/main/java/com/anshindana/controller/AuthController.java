@@ -21,9 +21,9 @@ public class AuthController {
 
     @PostMapping("/line")
     public ResponseEntity<AuthService.AuthResponse> exchange(@Valid @RequestBody LineAuthRequest request) {
-        return ResponseEntity.ok(authService.exchangeLineIdToken(request.idToken()));
+        return ResponseEntity.ok(authService.exchangeLineIdToken(request.idToken(), request.displayName(), request.pictureUrl()));
     }
 
-    public record LineAuthRequest(@NotBlank String idToken) {
+    public record LineAuthRequest(@NotBlank String idToken, String displayName, String pictureUrl) {
     }
 }

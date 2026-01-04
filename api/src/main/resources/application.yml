@@ -7,23 +7,20 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/anshindana}
     username: ${DATABASE_USER:app}
     password: ${DATABASE_PASSWORD:app}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
 app:
   jwt:
     secret: ${APP_JWT_SECRET:dev-secret}
+    issuer: ${APP_JWT_ISSUER:anshin-dana}
+    expires-minutes: ${APP_JWT_EXPIRES_MINUTES:10080}
   line:
     channel-id: ${LINE_CHANNEL_ID:dummy}
     channel-secret: ${LINE_CHANNEL_SECRET:dummy}
     jwks-uri: https://api.line.me/oauth2/v2.1/certs
-
----
-spring:
-  config:
-    activate:
-      on-profile: dev
-
-app:
-  mock:
-    enabled: true
+    issuer: https://access.line.me
