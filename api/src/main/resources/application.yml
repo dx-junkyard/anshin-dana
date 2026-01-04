@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: anshin-dana-api
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/anshindana}
+    username: ${DATABASE_USER:app}
+    password: ${DATABASE_PASSWORD:app}
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret}
+  line:
+    channel-id: ${LINE_CHANNEL_ID:dummy}
+    channel-secret: ${LINE_CHANNEL_SECRET:dummy}
+    jwks-uri: https://api.line.me/oauth2/v2.1/certs
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+app:
+  mock:
+    enabled: true

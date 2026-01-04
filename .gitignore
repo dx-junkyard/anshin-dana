@@ -1,0 +1,13 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Java / Gradle
+api/build/
+api/.gradle/
+
+# Env & misc
+.env
+*.log
+.DS_Store
