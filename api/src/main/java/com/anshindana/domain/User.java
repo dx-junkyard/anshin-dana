@@ -26,7 +26,7 @@ public class User {
     @Column(name = "display_name")
     private String displayName;
 
-    @Column(name = "picture_url")
+    @Column(name = "picture_url", columnDefinition = "text")
     private String pictureUrl;
 
     @Column(name = "created_at", nullable = false, updatable = false)

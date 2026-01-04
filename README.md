@@ -20,6 +20,19 @@ The reverse proxy exposes:
 
 - Next.js web at `http://localhost:8080`
 - API proxied at `http://localhost:8080/api`
+- PostgreSQL is started in the same Compose stack. The API applies Flyway migrations automatically on boot using `DATABASE_URL`, `DATABASE_USER`, and `DATABASE_PASSWORD` (all included in `.env.example`).
+
+### Database migrations
+
+- Schema changes are managed by Flyway in `api/src/main/resources/db/migration`. Running the API (or worker) will auto-apply pending migrations at startup.
+- To run migrations manually for local development, from `api/` execute:
+
+```bash
+./gradlew flywayMigrate \
+  -Dspring.datasource.url=$DATABASE_URL \
+  -Dspring.datasource.username=$DATABASE_USER \
+  -Dspring.datasource.password=$DATABASE_PASSWORD
+```
 
 ### Authentication flow
 
