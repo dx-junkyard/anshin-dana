@@ -9,10 +9,12 @@ spring:
     password: ${DATABASE_PASSWORD:app}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
 
 app:
   jwt:
