@@ -1,7 +1,7 @@
 'use client';
 
 import liff from "@line/liff";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { AuthResponse } from "../lib/types";
 import { clearToken, getStoredToken, storeToken } from "../lib/auth-store";
@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isInitializing = useRef(false);
 
   useEffect(() => {
     const existing = getStoredToken();
@@ -35,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (isInitializing.current) return;
+    isInitializing.current = true;
     void initialize();
   }, []);
 
@@ -54,15 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("LIFF ID not configured");
       }
 
-      if (!liff.isInClient() && !liff.isLoggedIn()) {
-        // In browser but not logged in: trigger login
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-      } else if (!liff.isInitialized()) {
-        await liff.init({ liffId: LIFF_ID });
+      await liff.init({ liffId: LIFF_ID });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
       }
 
       const idToken = liff.getIDToken() || DEV_ID_TOKEN;
