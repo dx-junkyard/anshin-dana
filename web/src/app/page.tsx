@@ -1,15 +1,10 @@
-const mockTasks = {
-  expiringSoon: [
-    { name: "パスタソース", expiresOn: "2024-08-03" },
-    { name: "ツナ缶", expiresOn: "2024-08-10" }
-  ],
-  expired: [{ name: "トマトジュース", expiredOn: "2024-07-01" }],
-  lowStock: [{ category: "主食", suggestion: "お米を2kg買い足し" }],
-  suggestedConsume: [
-    { name: "冷凍唐揚げ", reason: "冷凍庫スペース確保" },
-    { name: "パスタ", reason: "賞味期限が近い" }
-  ]
-};
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { api } from "../lib/api";
+import { InlineError } from "../components/Feedback";
+import { TodayTasks } from "../lib/types";
+import { useAuth } from "../components/AuthProvider";
 
 const TaskSection = ({ title, items, renderItem }: { title: string; items: any[]; renderItem: (item: any, index: number) => React.ReactNode }) => (
   <section className="card">
@@ -24,6 +19,29 @@ const TaskSection = ({ title, items, renderItem }: { title: string; items: any[]
 );
 
 export default function HomePage() {
+  const { loading: authLoading, error: authError } = useAuth();
+  const [tasks, setTasks] = useState<TodayTasks | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authLoading) return;
+    void fetchTasks();
+  }, [authLoading]);
+
+  const fetchTasks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.getTodayTasks();
+      setTasks(res);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "タスク取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="grid" style={{ gap: 16 }}>
       <nav className="card">
@@ -35,56 +53,64 @@ export default function HomePage() {
         <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>LIFF起動後に idToken を取得し、バックエンドに交換する想定です。</div>
       </nav>
 
-      <TaskSection
-        title="期限が近い"
-        items={mockTasks.expiringSoon}
-        renderItem={(item) => (
-          <div className="card" key={item.name} style={{ padding: 12 }}>
-            <div style={{ fontWeight: 600 }}>{item.name}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>期限 {item.expiresOn}</div>
-            <div className="stack" style={{ marginTop: 8 }}>
-              <button>消費する</button>
-              <button className="secondary">メモ</button>
-            </div>
-          </div>
-        )}
-      />
+      {authError && <InlineError message={authError} />}
+      {error && <InlineError message={error} />}
 
-      <TaskSection
-        title="期限切れ"
-        items={mockTasks.expired}
-        renderItem={(item) => (
-          <div className="card" key={item.name} style={{ padding: 12 }}>
-            <div style={{ fontWeight: 600 }}>{item.name}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>期限 {item.expiredOn}</div>
-            <button style={{ marginTop: 8 }}>点検/処分</button>
-          </div>
-        )}
-      />
+      {loading && <div>読み込み中...</div>}
+      {!loading && tasks && (
+        <>
+          <TaskSection
+            title="期限が近い"
+            items={tasks.expiringSoon}
+            renderItem={(item) => (
+              <div className="card" key={item.name} style={{ padding: 12 }}>
+                <div style={{ fontWeight: 600 }}>{item.name}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>期限 {item.expiresOn}</div>
+                <div className="stack" style={{ marginTop: 8 }}>
+                  <button>消費する</button>
+                  <button className="secondary">メモ</button>
+                </div>
+              </div>
+            )}
+          />
 
-      <TaskSection
-        title="不足"
-        items={mockTasks.lowStock}
-        renderItem={(item, idx) => (
-          <div className="card" key={idx} style={{ padding: 12 }}>
-            <div style={{ fontWeight: 600 }}>{item.category}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{item.suggestion}</div>
-            <button style={{ marginTop: 8 }}>買い足しメモ</button>
-          </div>
-        )}
-      />
+          <TaskSection
+            title="期限切れ"
+            items={tasks.expired}
+            renderItem={(item) => (
+              <div className="card" key={item.name} style={{ padding: 12 }}>
+                <div style={{ fontWeight: 600 }}>{item.name}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>期限 {item.expiredOn}</div>
+                <button style={{ marginTop: 8 }}>点検/処分</button>
+              </div>
+            )}
+          />
 
-      <TaskSection
-        title="今日食べる候補"
-        items={mockTasks.suggestedConsume}
-        renderItem={(item) => (
-          <div className="card" key={item.name} style={{ padding: 12 }}>
-            <div style={{ fontWeight: 600 }}>{item.name}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>{item.reason}</div>
-            <button style={{ marginTop: 8 }}>消費する</button>
-          </div>
-        )}
-      />
+          <TaskSection
+            title="不足"
+            items={tasks.lowStock}
+            renderItem={(item, idx) => (
+              <div className="card" key={idx} style={{ padding: 12 }}>
+                <div style={{ fontWeight: 600 }}>{item.category}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>{item.suggestion}</div>
+                <button style={{ marginTop: 8 }}>買い足しメモ</button>
+              </div>
+            )}
+          />
+
+          <TaskSection
+            title="今日食べる候補"
+            items={tasks.suggestedConsume}
+            renderItem={(item) => (
+              <div className="card" key={item.name} style={{ padding: 12 }}>
+                <div style={{ fontWeight: 600 }}>{item.name}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>{item.reason}</div>
+                <button style={{ marginTop: 8 }}>消費する</button>
+              </div>
+            )}
+          />
+        </>
+      )}
     </main>
   );
 }
