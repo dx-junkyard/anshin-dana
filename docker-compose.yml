@@ -10,7 +10,10 @@ services:
       - api
 
   web:
-    build: ./web
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_LIFF_ID: ${LIFF_ID}
     environment:
       - NEXT_PUBLIC_LIFF_ID=${LIFF_ID}
       - NEXT_PUBLIC_API_BASE=/api
